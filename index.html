@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XAUUSD Trading Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0e0f;
+    --panel:#11181a;
+    --panel2:#161f22;
+    --line:#1f2c30;
+    --gold:#d4a543;
+    --gold-soft:#e8c878;
+    --green:#3ec98a;
+    --red:#e0564f;
+    --text:#e6ecec;
+    --muted:#7d8c8f;
+    --faint:#4a5759;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    line-height:1.5;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(212,165,67,0.06), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(62,201,138,0.04), transparent 45%);
+    min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+
+  /* ── Header ── */
+  header{
+    border-bottom:1px solid var(--line);
+    padding:38px 0 30px;
+    margin-bottom:42px;
+    position:relative;
+  }
+  .eyebrow{
+    font-size:11px;letter-spacing:0.32em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:14px;font-weight:500;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:clamp(36px,6vw,60px);line-height:1.0;
+    letter-spacing:-0.03em;margin-bottom:16px;
+  }
+  h1 .accent{color:var(--gold);font-weight:500;}
+  .sub{color:var(--muted);font-size:14px;max-width:560px;}
+  .live-dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--green);margin-right:7px;
+    box-shadow:0 0 0 0 rgba(62,201,138,0.6);
+    animation:pulse 2s infinite;vertical-align:middle;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(62,201,138,0.5)}
+    70%{box-shadow:0 0 0 8px rgba(62,201,138,0)}
+    100%{box-shadow:0 0 0 0 rgba(62,201,138,0)}
+  }
+
+  /* ── Stat cards ── */
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px;
+  }
+  .card{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:22px 20px;position:relative;overflow:hidden;
+    transition:transform .25s ease,border-color .25s ease;
+  }
+  .card:hover{transform:translateY(-3px);border-color:var(--gold);}
+  .card::after{
+    content:"";position:absolute;top:0;right:0;width:60px;height:60px;
+    background:radial-gradient(circle, rgba(212,165,67,0.1), transparent 70%);
+  }
+  .card .label{
+    font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:12px;
+  }
+  .card .value{
+    font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:600;line-height:1;
+  }
+  .card .value.up{color:var(--green)}
+  .card .value.gold{color:var(--gold)}
+  .card .meta{font-size:11px;color:var(--faint);margin-top:8px;}
+
+  /* ── Section ── */
+  .section-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin-bottom:20px;border-bottom:1px solid var(--line);padding-bottom:12px;
+  }
+  .section-head h2{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:24px;letter-spacing:-0.01em;
+  }
+  .section-head .note{font-size:11px;color:var(--muted);letter-spacing:0.05em;}
+
+  /* ── Chart ── */
+  .chart-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:24px;margin-bottom:48px;height:340px;
+  }
+
+  /* ── Table ── */
+  .table-wrap{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    overflow:hidden;margin-bottom:32px;
+  }
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;padding:14px 18px;font-size:10.5px;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--muted);font-weight:500;
+    border-bottom:1px solid var(--line);background:var(--panel2);
+  }
+  tbody td{padding:14px 18px;border-bottom:1px solid var(--line);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr{transition:background .15s ease;}
+  tbody tr:hover{background:var(--panel2);}
+  .dir{
+    display:inline-block;padding:3px 10px;border-radius:5px;font-size:10.5px;
+    font-weight:700;letter-spacing:0.05em;
+  }
+  .dir.long{background:rgba(62,201,138,0.12);color:var(--green);}
+  .dir.short{background:rgba(224,86,79,0.12);color:var(--red);}
+  .pnl.pos{color:var(--green);font-weight:500;}
+  .pnl.neg{color:var(--red);font-weight:500;}
+  .ticker{color:var(--gold-soft);font-weight:500;}
+  .del-btn{
+    background:none;border:none;color:var(--faint);cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:15px;padding:2px 6px;
+    border-radius:5px;transition:all .15s;line-height:1;
+  }
+  .del-btn:hover{color:var(--red);background:rgba(224,86,79,0.1);}
+  .save-status{
+    font-size:11px;color:var(--green);letter-spacing:0.05em;
+    opacity:0;transition:opacity .3s;
+  }
+  .save-status.show{opacity:1;}
+  /* 관리자 바 */
+  .admin-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:14px 18px;margin-bottom:32px;flex-wrap:wrap;gap:12px;
+  }
+  .admin-label{font-size:12px;color:var(--muted);letter-spacing:0.05em;}
+  .admin-label.on{color:var(--green);}
+  .admin-actions{display:flex;gap:10px;align-items:center;}
+  .admin-pw{
+    background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+    padding:8px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;
+    font-size:12px;width:170px;
+  }
+  .admin-pw:focus{outline:none;border-color:var(--gold);}
+  .btn-ghost{
+    background:transparent;border:1px solid var(--gold);color:var(--gold);
+    border-radius:8px;padding:8px 16px;font-family:'JetBrains Mono',monospace;
+    font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;
+  }
+  .btn-ghost:hover{background:var(--gold);color:#0a0e0f;}
+
+  /* ── Add form ── */
+  .add-row{
+    display:grid;grid-template-columns:1.3fr 0.9fr 1fr 1fr 1fr auto;
+    gap:10px;margin-bottom:48px;align-items:end;
+  }
+  .field label{
+    display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:6px;
+  }
+  .field input,.field select{
+    width:100%;background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;color:var(--text);
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+  }
+  .field input:focus,.field select:focus{outline:none;border-color:var(--gold);}
+  .btn{
+    background:var(--gold);color:#0a0e0f;border:none;border-radius:8px;
+    padding:11px 20px;font-family:'JetBrains Mono',monospace;font-weight:700;
+    font-size:13px;cursor:pointer;letter-spacing:0.03em;transition:background .2s;
+    white-space:nowrap;
+  }
+  .btn:hover{background:var(--gold-soft);}
+
+  /* ── Footer ── */
+  footer{
+    border-top:1px solid var(--line);padding:30px 0 50px;margin-top:40px;
+    color:var(--faint);font-size:12px;text-align:center;
+  }
+  footer .strat{color:var(--muted);margin-bottom:6px;}
+
+  @media(max-width:860px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .add-row{grid-template-columns:1fr 1fr;}
+    .add-row .btn{grid-column:1/-1;}
+    table{font-size:12px;}
+    thead th:nth-child(4),tbody td:nth-child(4){display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Algorithmic Trading Journal</div>
+    <h1>XAUUSD <span class="accent">Strategy</span> Log</h1>
+    <p class="sub"><span class="live-dot"></span>일봉 시가 진입 · 마감 직전 청산 전략(final 모델). 매일의 매매 기록과 누적 성과를 추적합니다. <span class="save-status" id="saveStatus">✓ 저장됨</span></p>
+  </header>
+
+  <!-- 핵심 지표 -->
+  <div class="stats" id="stats"></div>
+
+  <!-- 수익 곡선 -->
+  <div class="section-head">
+    <h2>Equity Curve</h2>
+    <span class="note">누적 잔고 추이</span>
+  </div>
+  <div class="chart-box"><canvas id="equityChart"></canvas></div>
+
+  <!-- 관리자 로그인 바 -->
+  <div class="admin-bar">
+    <span id="adminLabel" class="admin-label">읽기 전용 모드</span>
+    <div class="admin-actions">
+      <input type="password" id="adminPw" class="admin-pw" placeholder="관리자 비밀번호">
+      <button class="btn-ghost" id="adminBtn" onclick="toggleAdmin()">로그인</button>
+    </div>
+  </div>
+
+  <!-- 매매 추가 (관리자 전용) -->
+  <div id="adminPanel" style="display:none;">
+    <div class="section-head">
+      <h2>Add Trade</h2>
+      <span class="note">새 매매 기록 추가</span>
+    </div>
+    <div class="add-row">
+      <div class="field"><label>날짜</label><input type="date" id="f-date"></div>
+      <div class="field"><label>방향</label>
+        <select id="f-dir"><option value="long">LONG</option><option value="short">SHORT</option></select>
+      </div>
+      <div class="field"><label>진입가</label><input type="number" step="0.01" id="f-entry" placeholder="2650.00"></div>
+      <div class="field"><label>청산가</label><input type="number" step="0.01" id="f-exit" placeholder="2656.10"></div>
+      <div class="field"><label>손익 ($)</label><input type="number" step="0.01" id="f-pnl" placeholder="6.10"></div>
+      <button class="btn" onclick="addTrade()">+ 기록</button>
+    </div>
+  </div>
+
+  <!-- 매매 기록 -->
+  <div class="section-head">
+    <h2>Trade History</h2>
+    <span class="note" id="trade-count"></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>날짜</th><th>심볼</th><th>방향</th><th>진입</th><th>청산</th><th>손익</th><th></th>
+      </tr></thead>
+      <tbody id="tradeBody"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    <div class="strat">Strategy: final model · TP 0.23% · Gold(XAUUSD) Daily · Entry window ±10s</div>
+    <div>Built as a personal trading journal · 입력한 매매는 자동 저장됩니다</div>
+  </footer>
+
+</div>
+
+<script type="module">
+// ════════════════════════════════════════════════════════════
+//  Firebase 설정 (trade-record 프로젝트)
+// ════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyBfcuwvUpr_XGGxdF_LzWBRi5wvc4Zt-Ts",
+  authDomain:        "trade-record-dc0a8.firebaseapp.com",
+  databaseURL:       "https://trade-record-dc0a8-default-rtdb.firebaseio.com",
+  projectId:         "trade-record-dc0a8",
+  storageBucket:     "trade-record-dc0a8.firebasestorage.app",
+  messagingSenderId: "717885380136",
+  appId:             "1:717885380136:web:29a22e352a5d1a5e26471d"
+};
+
+// ════════════════════════════════════════════════════════════
+//  관리자 비밀번호 — 원하는 비밀번호로 변경하세요
+// ════════════════════════════════════════════════════════════
+const ADMIN_PASSWORD = "26542654";
+
+// ── Firebase SDK 로드 (Realtime Database) ──
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const TRADES_REF = ref(db, "trades");   // /trades 경로에 저장
+
+// ── 기본 샘플 데이터 (DB가 비어있을 때만 표시) ──
+const SAMPLE_TRADES = [
+  {date:'2026-05-25', dir:'long', entry:2641.20, exit:2647.30, pnl:6.10},
+  {date:'2026-05-26', dir:'long', entry:2648.50, exit:2654.60, pnl:6.10},
+  {date:'2026-05-27', dir:'long', entry:2655.00, exit:2661.10, pnl:6.10},
+  {date:'2026-05-28', dir:'long', entry:2660.40, exit:2640.20, pnl:-20.20},
+  {date:'2026-05-29', dir:'long', entry:2638.00, exit:2644.07, pnl:6.07},
+];
+
+let trades = [];
+let isAdmin = false;
+const START_BALANCE = 200;
+
+// ── Firebase 저장/불러오기 ──
+async function saveTrades(){
+  if(!isAdmin) return;
+  try{
+    await set(TRADES_REF, trades);
+    showSaved();
+  }catch(e){
+    console.error('저장 실패:', e);
+    alert('저장 실패. 콘솔을 확인하세요.');
+  }
+}
+
+async function loadTrades(){
+  try{
+    const snap = await get(TRADES_REF);
+    if(snap.exists() && snap.val()){
+      trades = snap.val();
+      return;
+    }
+  }catch(e){
+    console.error('불러오기 실패:', e);
+  }
+  trades = [...SAMPLE_TRADES];
+}
+
+// ── 관리자 로그인 ──
+window.toggleAdmin = function(){
+  if(isAdmin){
+    isAdmin = false;
+    updateAdminUI();
+    return;
+  }
+  const pw = document.getElementById('adminPw').value;
+  if(pw === ADMIN_PASSWORD){
+    isAdmin = true;
+    updateAdminUI();
+  }else{
+    alert('비밀번호가 틀렸습니다.');
+  }
+};
+
+function updateAdminUI(){
+  const label = document.getElementById('adminLabel');
+  const btn   = document.getElementById('adminBtn');
+  const pw    = document.getElementById('adminPw');
+  const panel = document.getElementById('adminPanel');
+  if(isAdmin){
+    label.textContent = '관리자 모드 ✓';
+    label.classList.add('on');
+    btn.textContent = '로그아웃';
+    pw.style.display = 'none';
+    panel.style.display = 'block';
+  }else{
+    label.textContent = '읽기 전용 모드';
+    label.classList.remove('on');
+    btn.textContent = '로그인';
+    pw.style.display = '';
+    pw.value = '';
+    panel.style.display = 'none';
+  }
+  renderTable();
+}
+
+function showSaved(){
+  const el = document.getElementById('saveStatus');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 1800);
+}
+
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function renderStats(){
+  const totalPnl = trades.reduce((s,t)=>s+t.pnl,0);
+  const wins = trades.filter(t=>t.pnl>0).length;
+  const winRate = trades.length? (wins/trades.length*100):0;
+  const grossWin = trades.filter(t=>t.pnl>0).reduce((s,t)=>s+t.pnl,0);
+  const grossLoss = Math.abs(trades.filter(t=>t.pnl<0).reduce((s,t)=>s+t.pnl,0));
+  const pf = grossLoss? (grossWin/grossLoss):grossWin;
+  const balance = START_BALANCE + totalPnl;
+
+  const cards = [
+    {label:'현재 잔고', value:'$'+fmt(balance), cls:'gold', meta:'시작 $'+START_BALANCE},
+    {label:'누적 손익', value:(totalPnl>=0?'+':'')+'$'+fmt(totalPnl), cls:totalPnl>=0?'up':'', meta:trades.length+' trades'},
+    {label:'승률', value:winRate.toFixed(1)+'%', cls:'', meta:wins+'W / '+(trades.length-wins)+'L'},
+    {label:'Profit Factor', value:pf.toFixed(2), cls:'gold', meta:'gross '+fmt(grossWin)+' / '+fmt(grossLoss)},
+  ];
+  document.getElementById('stats').innerHTML = cards.map(c=>`
+    <div class="card">
+      <div class="label">${c.label}</div>
+      <div class="value ${c.cls}">${c.value}</div>
+      <div class="meta">${c.meta}</div>
+    </div>`).join('');
+}
+
+function renderTable(){
+  const indexed = trades.map((t,i)=>({...t,_i:i}));
+  const sorted = indexed.sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('tradeBody').innerHTML = sorted.map(t=>`
+    <tr>
+      <td>${t.date}</td>
+      <td class="ticker">XAUUSD</td>
+      <td><span class="dir ${t.dir}">${t.dir.toUpperCase()}</span></td>
+      <td>${fmt(t.entry)}</td>
+      <td>${fmt(t.exit)}</td>
+      <td class="pnl ${t.pnl>=0?'pos':'neg'}">${t.pnl>=0?'+':''}${fmt(t.pnl)}</td>
+      <td>${isAdmin?`<button class="del-btn" onclick="deleteTrade(${t._i})" title="삭제">×</button>`:''}</td>
+    </tr>`).join('');
+  document.getElementById('trade-count').textContent = trades.length+' records';
+}
+
+window.deleteTrade = async function(i){
+  if(!isAdmin) return;
+  trades.splice(i,1);
+  await saveTrades();
+  renderAll();
+};
+
+let chart;
+function renderChart(){
+  const sorted=[...trades].sort((a,b)=>a.date.localeCompare(b.date));
+  let bal=START_BALANCE;
+  const labels=['start'], data=[START_BALANCE];
+  sorted.forEach(t=>{bal+=t.pnl;labels.push(t.date.slice(5));data.push(+bal.toFixed(2));});
+
+  const ctx=document.getElementById('equityChart');
+  if(chart)chart.destroy();
+  chart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets:[{
+      data,borderColor:'#d4a543',borderWidth:2,
+      fill:true,tension:0.25,
+      pointBackgroundColor:'#d4a543',pointRadius:3,pointHoverRadius:5,
+      backgroundColor:(c)=>{
+        const g=c.chart.ctx.createLinearGradient(0,0,0,300);
+        g.addColorStop(0,'rgba(212,165,67,0.25)');
+        g.addColorStop(1,'rgba(212,165,67,0)');
+        return g;
+      }
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{color:'#1f2c30'},ticks:{color:'#7d8c8f',font:{family:'JetBrains Mono',size:10}}},
+        y:{grid:{color:'#1f2c30'},ticks:{color:'#7d8c8f',font:{family:'JetBrains Mono',size:10},callback:v=>'$'+v}}
+      }
+    }
+  });
+}
+
+window.addTrade = async function(){
+  if(!isAdmin){alert('관리자 로그인이 필요합니다.');return;}
+  const date=document.getElementById('f-date').value;
+  const dir=document.getElementById('f-dir').value;
+  const entry=parseFloat(document.getElementById('f-entry').value);
+  const exit=parseFloat(document.getElementById('f-exit').value);
+  let pnl=parseFloat(document.getElementById('f-pnl').value);
+  if(!date){alert('날짜를 입력하세요');return;}
+  if(isNaN(pnl)){
+    if(!isNaN(entry)&&!isNaN(exit)){
+      pnl=(dir==='long'?(exit-entry):(entry-exit));
+    }else{alert('손익 또는 진입/청산가를 입력하세요');return;}
+  }
+  trades.push({date,dir,entry:entry||0,exit:exit||0,pnl:+pnl.toFixed(2)});
+  document.getElementById('f-entry').value='';
+  document.getElementById('f-exit').value='';
+  document.getElementById('f-pnl').value='';
+  await saveTrades();
+  renderAll();
+};
+
+function renderAll(){renderStats();renderChart();renderTable();}
+
+// ── 초기화: Firebase에서 데이터 불러온 후 렌더링 ──
+async function init(){
+  document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+  await loadTrades();
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>
