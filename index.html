@@ -298,18 +298,12 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 const TRADES_REF = ref(db, "trades");   // /trades 경로에 저장
 
-// ── 기본 샘플 데이터 (DB가 비어있을 때만 표시) ──
-const SAMPLE_TRADES = [
-  {date:'2026-05-25', dir:'long', entry:2641.20, exit:2647.30, pnl:6.10},
-  {date:'2026-05-26', dir:'long', entry:2648.50, exit:2654.60, pnl:6.10},
-  {date:'2026-05-27', dir:'long', entry:2655.00, exit:2661.10, pnl:6.10},
-  {date:'2026-05-28', dir:'long', entry:2660.40, exit:2640.20, pnl:-20.20},
-  {date:'2026-05-29', dir:'long', entry:2638.00, exit:2644.07, pnl:6.07},
-];
+// ── 기본 데이터 (DB가 비어있을 때 빈 일지로 시작) ──
+const SAMPLE_TRADES = [];
 
 let trades = [];
 let isAdmin = false;
-const START_BALANCE = 200;
+const START_BALANCE = 396.33;
 
 // ── Firebase 저장/불러오기 ──
 async function saveTrades(){
